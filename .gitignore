@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Environment Files
+.env
+*.env.local
+
+# Build artifacts
+dist/
+build/
+
+# Uploads & local databases
+backend/uploads/*.jpg
+backend/uploads/*.png
+backend/uploads/*.jpeg
+backend/uploads/*.webp
+*.db
+*.sqlite3
+
+# System & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

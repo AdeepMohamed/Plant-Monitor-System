@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22C55E" />
+      <stop offset="100%" stop-color="#104B32" />
+    </linearGradient>
+    <linearGradient id="aiGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#86EFAC" />
+      <stop offset="100%" stop-color="#16834A" />
+    </linearGradient>
+  </defs>
+  <!-- Background Badge -->
+  <rect width="48" height="48" rx="12" fill="#E8F5E9" />
+  <!-- Main Leaf Body -->
+  <path d="M12 36C12 22 22 12 36 12C36 26 26 36 12 36Z" fill="url(#leafGrad)" />
+  <!-- Neural / AI Circuit Stem & Nodes -->
+  <path d="M14 34L26 22" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+  <path d="M22 26L30 26" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
+  <path d="M18 30L18 24" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
+  <circle cx="26" cy="22" r="3" fill="#FFFFFF" />
+  <circle cx="30" cy="26" r="2.2" fill="#86EFAC" />
+  <circle cx="18" cy="24" r="2.2" fill="#86EFAC" />
+  <circle cx="36" cy="12" r="2" fill="#22C55E" />
+</svg>
