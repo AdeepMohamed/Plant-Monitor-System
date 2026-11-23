@@ -1,24 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
 import {
   Bot,
   User,
   Send,
-  Sparkles,
   Plus,
   Trash2,
-  Sprout,
-  AlertTriangle,
-  HelpCircle,
   Loader2,
   MessageSquare
 } from 'lucide-react';
 
 export const AssistantPage = () => {
   const location = useLocation();
-  const { user } = useAuth();
 
   const [sessions, setSessions] = useState([]);
   const [currentSessionId, setCurrentSessionId] = useState(null);
@@ -27,23 +21,21 @@ export const AssistantPage = () => {
   const [sending, setSending] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  // Optional Plant Context
+  // Plant Context
   const [plants, setPlants] = useState([]);
   const [selectedPlantId, setSelectedPlantId] = useState('');
 
   const chatBottomRef = useRef(null);
 
-  const suggestedPrompts = [
-    "How do I treat powdery mildew organically on squashes and tomatoes?",
-    "Why are my plant leaves turning yellow while veins remain green?",
-    "What is the best watering and fertilizer schedule for container crops?",
-    "How can I eliminate spider mites and aphids without harsh synthetic pesticides?",
-    "Which companion plants repel pests naturally in an organic vegetable patch?"
+  const suggestedQuestions = [
+    "How do I treat powdery mildew organically?",
+    "Why are my tomato leaves turning yellow?",
+    "How often should I water my indoor plants?",
+    "How do I eliminate aphids without harsh chemicals?"
   ];
 
-  // Load chat sessions & plants
   useEffect(() => {
-    const initData = async () => {
+    const init = async () => {
       try {
         const [sessList, plantList] = await Promise.all([
           api.chat.getSessions().catch(() => []),
@@ -58,16 +50,15 @@ export const AssistantPage = () => {
           startNewSession();
         }
 
-        // If came with plantContext from Analysis page
         if (location.state?.plantContext) {
-          setInputMessage(`Can you explain the recommended treatment plan for: ${location.state.plantContext}?`);
+          setInputMessage(`What treatment do you recommend for: ${location.state.plantContext}?`);
         }
       } catch (err) {
-        console.error("Assistant init failed:", err);
+        console.error("Init error:", err);
       }
     };
 
-    initData();
+    init();
   }, []);
 
   useEffect(() => {
@@ -80,7 +71,7 @@ export const AssistantPage = () => {
       {
         id: 'welcome',
         role: 'assistant',
-        content: "Hello! I am your PlantCare AI Agronomy Assistant, powered by Google Gemini. Ask me anything about plant diseases, organic remedies, soil amendments, watering regimens, or pest prevention!"
+        content: "Hello! I am your PlantCare AI Agronomy Assistant. Ask me anything about plant diseases, organic remedies, soil health, watering regimens, or pest prevention."
       }
     ]);
   };
@@ -94,7 +85,7 @@ export const AssistantPage = () => {
         setMessages(data.messages);
       }
     } catch (err) {
-      console.error("Failed to load session:", err);
+      console.error("Session load error:", err);
     } finally {
       setLoadingHistory(false);
     }
@@ -109,20 +100,15 @@ export const AssistantPage = () => {
         startNewSession();
       }
     } catch (err) {
-      alert("Failed to delete conversation: " + err.message);
+      alert("Failed to delete chat: " + err.message);
     }
   };
 
-  const handleSendMessage = async (textToSend = null) => {
-    const text = textToSend || inputMessage;
+  const handleSendMessage = async (customText = null) => {
+    const text = customText || inputMessage;
     if (!text.trim() || sending) return;
 
-    const userMsg = {
-      id: Date.now(),
-      role: 'user',
-      content: text
-    };
-
+    const userMsg = { id: Date.now(), role: 'user', content: text };
     setMessages(prev => [...prev, userMsg]);
     setInputMessage('');
     setSending(true);
@@ -139,24 +125,17 @@ export const AssistantPage = () => {
         role: 'assistant',
         content: response.reply
       };
-
       setMessages(prev => [...prev, botMsg]);
 
-      // If new session was created on backend
       if (!currentSessionId && response.session_id) {
         setCurrentSessionId(response.session_id);
-        const updatedSessions = await api.chat.getSessions();
-        setSessions(updatedSessions);
+        const updated = await api.chat.getSessions();
+        setSessions(updated);
       }
     } catch (err) {
-      console.error("Chat error:", err);
       setMessages(prev => [
         ...prev,
-        {
-          id: Date.now() + 2,
-          role: 'assistant',
-          content: `⚠️ Error contacting Gemini Assistant: ${err.message || 'Please check your internet connection or backend API key.'}`
-        }
+        { id: Date.now() + 2, role: 'assistant', content: `⚠️ Could not reach Gemini Assistant: ${err.message}` }
       ]);
     } finally {
       setSending(false);
@@ -164,71 +143,66 @@ export const AssistantPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-5rem)] flex flex-col md:flex-row gap-6 animate-in fade-in duration-300">
+    <div className="max-w-6xl mx-auto px-4 py-6 h-[calc(100vh-5.5rem)] flex flex-col md:flex-row gap-5 animate-in fade-in duration-150">
       
       {/* Sessions Sidebar */}
-      <div className="w-full md:w-72 shrink-0 glass-panel rounded-3xl border border-emerald-100 dark:border-emerald-900/60 p-4 flex flex-col justify-between shadow-xs hidden md:flex">
-        <div className="space-y-4">
+      <div className="w-full md:w-64 shrink-0 clean-card p-4 flex flex-col justify-between hidden md:flex">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-emerald-950 dark:text-emerald-200 flex items-center gap-1.5">
-              <MessageSquare className="w-4 h-4 text-emerald-600" />
-              <span>Agronomy Chats</span>
-            </h2>
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Conversations
+            </span>
             <button
+              type="button"
               onClick={startNewSession}
-              className="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200 transition-colors"
-              title="New Conversation"
+              className="p-1 rounded-lg text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+              title="New Chat"
             >
               <Plus className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Session List */}
-          <div className="space-y-1 max-h-[60vh] overflow-y-auto pr-1">
+          <div className="space-y-1 max-h-[55vh] overflow-y-auto">
             {sessions.map((s) => (
               <div
                 key={s.id}
                 onClick={() => selectSession(s.id)}
-                className={`p-2.5 rounded-xl cursor-pointer text-xs font-semibold flex items-center justify-between group transition-all ${
+                className={`p-2 rounded-lg cursor-pointer text-xs font-medium flex items-center justify-between group transition-colors ${
                   currentSessionId === s.id
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30'
+                    ? 'bg-emerald-50 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 font-semibold'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-emerald-950/40'
                 }`}
               >
-                <span className="truncate pr-2">{s.title || "Plant Conversation"}</span>
+                <span className="truncate pr-2">{s.title || "Chat"}</span>
                 <button
+                  type="button"
                   onClick={(e) => handleDeleteSession(s.id, e)}
-                  className="opacity-0 group-hover:opacity-100 p-1 hover:text-rose-300 transition-opacity"
-                  title="Delete chat"
+                  className="opacity-0 group-hover:opacity-100 p-0.5 text-gray-400 hover:text-rose-500"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
             {sessions.length === 0 && (
-              <p className="text-[11px] text-gray-400 py-3 text-center">
-                No past chat history yet.
-              </p>
+              <p className="text-[11px] text-gray-400 py-2 text-center">No past chats.</p>
             )}
           </div>
         </div>
 
-        {/* Plant Context Selector */}
+        {/* Plant Context Dropdown */}
         {plants.length > 0 && (
           <div className="pt-3 border-t border-gray-100 dark:border-emerald-900/60 space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
-              Active Plant Context
+            <label className="text-[10px] uppercase font-semibold text-gray-400 block">
+              Plant Context
             </label>
             <select
               value={selectedPlantId}
               onChange={(e) => setSelectedPlantId(e.target.value)}
-              className="w-full text-xs font-semibold p-2 rounded-xl border border-gray-200 dark:border-emerald-800 bg-white dark:bg-emerald-900 text-gray-800 dark:text-white"
+              className="w-full text-xs p-1.5 rounded-lg border border-gray-200 dark:border-emerald-800 bg-white dark:bg-emerald-900 text-gray-800 dark:text-gray-200"
             >
-              <option value="">General Agriculture Q&A</option>
+              <option value="">General Agriculture</option>
               {plants.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({p.species || p.category})
-                </option>
+                <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
           </div>
@@ -236,34 +210,28 @@ export const AssistantPage = () => {
       </div>
 
       {/* Main Chat Interface */}
-      <div className="flex-1 glass-panel rounded-3xl border border-emerald-100 dark:border-emerald-900/60 flex flex-col shadow-lg overflow-hidden">
+      <div className="flex-1 clean-card flex flex-col overflow-hidden">
         
-        {/* Chat Header */}
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-emerald-900/60 flex items-center justify-between bg-white/50 dark:bg-emerald-950/40">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-md">
-              <Bot className="w-6 h-6" />
+        {/* Chat Top Bar */}
+        <div className="px-5 py-3 border-b border-gray-100 dark:border-emerald-900/60 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
+              <Bot className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <span>PlantCare AI Assistant</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300">
-                  Gemini Flash
-                </span>
+              <h2 className="text-xs font-bold text-gray-900 dark:text-white">
+                Agronomy Assistant
               </h2>
-              <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                Crop Pathology • Soil Amendments • Integrated Pest Management
-              </p>
+              <span className="text-[10px] text-gray-400">Powered by Google Gemini</span>
             </div>
           </div>
         </div>
 
-        {/* Messages Stream */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        {/* Message Stream */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-3.5">
           {loadingHistory ? (
-            <div className="h-full flex flex-col items-center justify-center gap-2">
+            <div className="h-full flex items-center justify-center">
               <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
-              <p className="text-xs text-gray-400">Loading conversation history...</p>
             </div>
           ) : (
             messages.map((msg, idx) => {
@@ -271,21 +239,21 @@ export const AssistantPage = () => {
               return (
                 <div
                   key={msg.id || idx}
-                  className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'} animate-in fade-in duration-200`}
+                  className={`flex items-start gap-2.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
                 >
                   <div
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-white ${
-                      isUser ? 'bg-emerald-700' : 'bg-emerald-600 shadow-sm'
+                    className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] ${
+                      isUser ? 'bg-gray-700' : 'bg-emerald-600'
                     }`}
                   >
-                    {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                    {isUser ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
                   </div>
 
                   <div
-                    className={`p-4 rounded-2xl max-w-xl text-xs sm:text-sm leading-relaxed ${
+                    className={`p-3.5 rounded-xl max-w-xl text-xs sm:text-sm leading-relaxed ${
                       isUser
-                        ? 'bg-emerald-600 text-white rounded-tr-xs shadow-xs'
-                        : 'bg-white dark:bg-emerald-950/60 text-gray-800 dark:text-gray-100 border border-emerald-100 dark:border-emerald-900/60 rounded-tl-xs shadow-xs whitespace-pre-wrap'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-gray-50 dark:bg-emerald-950/40 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-emerald-900/60 whitespace-pre-wrap'
                     }`}
                   >
                     {msg.content}
@@ -296,43 +264,33 @@ export const AssistantPage = () => {
           )}
 
           {sending && (
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center text-white shrink-0">
-                <Bot className="w-4 h-4" />
-              </div>
-              <div className="p-3.5 rounded-2xl bg-white dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-900/60 rounded-tl-xs flex items-center gap-2 text-xs text-gray-500">
-                <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
-                <span>Consulting Gemini agronomy knowledge base...</span>
-              </div>
+            <div className="flex items-center gap-2 text-xs text-gray-400 pl-8">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+              <span>Gemini is thinking...</span>
             </div>
           )}
 
           <div ref={chatBottomRef} />
         </div>
 
-        {/* Suggested Queries Bar if few messages */}
+        {/* Suggested Queries */}
         {messages.length <= 2 && (
-          <div className="px-6 pb-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-2">
-              Suggested Questions:
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {suggestedPrompts.map((p, pi) => (
-                <button
-                  key={pi}
-                  type="button"
-                  onClick={() => handleSendMessage(p)}
-                  className="text-[11px] font-medium px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-white/80 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/50 transition-colors text-left"
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
+          <div className="px-5 pb-2 flex flex-wrap gap-1.5">
+            {suggestedQuestions.map((q, qi) => (
+              <button
+                key={qi}
+                type="button"
+                onClick={() => handleSendMessage(q)}
+                className="text-[11px] font-medium px-2.5 py-1 rounded-lg border border-gray-200 dark:border-emerald-800 hover:border-emerald-500 text-gray-600 dark:text-gray-300 transition-colors text-left cursor-pointer"
+              >
+                {q}
+              </button>
+            ))}
           </div>
         )}
 
-        {/* Input Form */}
-        <div className="p-4 border-t border-gray-100 dark:border-emerald-900/60 bg-white/60 dark:bg-emerald-950/60">
+        {/* Chat Input */}
+        <div className="p-3 border-t border-gray-100 dark:border-emerald-900/60">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -344,21 +302,17 @@ export const AssistantPage = () => {
               type="text"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Ask about leaf yellowing, organic treatments, watering, or fertilizers..."
-              className="flex-1 text-xs sm:text-sm font-medium px-4 py-3 rounded-2xl border border-gray-200 dark:border-emerald-800 bg-white dark:bg-emerald-900/40 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Ask about plant diseases, soil care, watering..."
+              className="flex-1 text-xs px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-emerald-800 bg-white dark:bg-emerald-900/30 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
             <button
               type="submit"
               disabled={!inputMessage.trim() || sending}
-              className="p-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white shadow-md hover:shadow-lg transition-all shrink-0 cursor-pointer"
+              className="btn-primary p-2.5 text-xs disabled:opacity-40 cursor-pointer"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-4 h-4" />
             </button>
           </form>
-
-          <p className="text-[10px] text-gray-400 text-center mt-2">
-            *Agricultural Disclaimer: Guidance provided by AI is educational. Always follow manufacturer chemical labels and regional agricultural extension safety protocols.
-          </p>
         </div>
 
       </div>
