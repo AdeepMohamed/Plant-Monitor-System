@@ -3,74 +3,122 @@
 @layer base {
   :root {
     --primary-green: #16834A;
+    --primary-green-glow: rgba(22, 131, 74, 0.25);
     --dark-green: #104B32;
     --light-green: #E8F5E9;
-    --bg-main: #F7FAF7;
+    --bg-main: #F4F7F4;
     --card-bg: #FFFFFF;
-    --text-primary: #111827;
-    --text-secondary: #4B5563;
-    --border-color: #E5E7EB;
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --border-color: #E2E8F0;
   }
 
   .dark {
     --primary-green: #22C55E;
+    --primary-green-glow: rgba(34, 197, 94, 0.25);
     --dark-green: #15803D;
     --light-green: #064E3B;
-    --bg-main: #0B1912;
-    --card-bg: #12281D;
-    --text-primary: #F9FAFB;
-    --text-secondary: #9CA3AF;
-    --border-color: #1F3F2E;
+    --bg-main: #07150E;
+    --card-bg: #0F231A;
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --border-color: #173827;
   }
 
   body {
     background-color: var(--bg-main);
     color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
     margin: 0;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.25s ease, color 0.25s ease;
+    overflow-x: hidden;
   }
 }
 
-/* Custom Scrollbar */
+/* Glassmorphism & Card Standards */
+.glass-panel, .glass-card {
+  background-color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(22, 131, 74, 0.12);
+  box-shadow: 0 10px 25px -5px rgba(16, 75, 50, 0.05), 0 8px 10px -6px rgba(16, 75, 50, 0.02);
+}
+
+.dark .glass-panel, .dark .glass-card {
+  background-color: rgba(15, 35, 26, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.45);
+}
+
+/* Laser sweep scan line */
+@keyframes laser-sweep {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 98%;
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.8;
+  }
+}
+
+.animate-laser {
+  animation: laser-sweep 2.8s ease-in-out infinite;
+}
+
+/* Pulsing Reticle */
+@keyframes pulse-ring {
+  0% { transform: scale(0.96); opacity: 0.7; }
+  50% { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(0.96); opacity: 0.7; }
+}
+
+.animate-reticle {
+  animation: pulse-ring 2.2s ease-in-out infinite;
+}
+
+/* Shutter flash */
+@keyframes shutter-flash {
+  0% { opacity: 0.95; }
+  100% { opacity: 0; }
+}
+
+.animate-shutter {
+  animation: shutter-flash 0.25s ease-out forwards;
+}
+
+/* Gradient text */
+.gradient-text-emerald {
+  background: linear-gradient(135deg, #16834A 0%, #0D9488 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .gradient-text-emerald {
+  background: linear-gradient(135deg, #4ADE80 0%, #2DD4BF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(22, 131, 74, 0.25);
+  background: rgba(22, 131, 74, 0.22);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(22, 131, 74, 0.5);
-}
-
-/* Glassmorphism helpers */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(22, 131, 74, 0.12);
-}
-
-.dark .glass-panel {
-  background: rgba(18, 40, 29, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(34, 197, 94, 0.15);
-}
-
-/* Pulse animation for scanner */
-@keyframes scan-line {
-  0% { transform: translateY(-100%); }
-  50% { transform: translateY(100%); }
-  100% { transform: translateY(-100%); }
-}
-
-.animate-scan {
-  animation: scan-line 3s ease-in-out infinite;
+  background: rgba(22, 131, 74, 0.45);
 }
